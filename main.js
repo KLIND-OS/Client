@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, ipcRenderer } = require("electron");
+const { app, BrowserWindow, globalShortcut } = require("electron");
 const path = require("path");
 const { URL } = require("url");
 var fetch = require("node-fetch");
@@ -9,6 +9,7 @@ function createWindow() {
     webPreferences: {
       webviewTag: true,
       preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: false
     },
   });
   globalShortcut.register("F12", () => {
@@ -28,7 +29,6 @@ function createWindow() {
     if (new URL(url).protocol == "data:") {
       var uri = url;
     } else {
-      console.log(url)
       const response = await fetch(url);
       var buffer = await response.arrayBuffer();
       const uint8Array = new Uint8Array(buffer);
@@ -50,6 +50,7 @@ function createWindow() {
     );
   });
 
+  
   
   win.show();
 }

@@ -11,7 +11,7 @@ function createWindow() {
     webPreferences: {
       webviewTag: true,
       preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: false
+      contextIsolation: false,
     },
   });
   globalShortcut.register("F12", () => {

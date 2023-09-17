@@ -2,6 +2,8 @@ const { app, BrowserWindow, globalShortcut } = require("electron");
 const path = require("path");
 const { URL } = require("url");
 var fetch = require("node-fetch");
+
+
 var win;
 function createWindow() {
   win = new BrowserWindow({
@@ -17,7 +19,6 @@ function createWindow() {
   });
   win.loadURL("http://localhost:10000");
   win.setMenu(null);
-  win.webContents.closeDevTools();
 
   win.webContents.session.on("will-download", async (event, item) => {
     event.preventDefault();

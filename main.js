@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut } = require("electron");
+const { app, BrowserWindow, globalShortcut, ipcMain } = require("electron");
 const path = require("path");
 const { URL } = require("url");
 var fetch = require("node-fetch");
@@ -20,6 +20,7 @@ function createWindow() {
   win.loadURL("http://localhost:10000");
   win.setMenu(null);
 
+  // Set custom download dialog
   win.webContents.session.on("will-download", async (event, item) => {
     event.preventDefault();
     win.webContents.executeJavaScript(
@@ -51,8 +52,18 @@ function createWindow() {
     );
   });
 
-  
-  
+  // Set preload to all webviews
+  const PRELOAD_WEBVIEW_PATH = path.join(__dirname, 'preload-webview.js');
+  setInterval(() => {
+    win.webContents.executeJavaScript(`
+      var webviews = document.querySelectorAll('webview');
+      webviews.forEach(webview => {
+        webview.setAttribute('preload', 'file://${PRELOAD_WEBVIEW_PATH}');
+      });
+    `);
+  }, 1000);
+
+
   win.show();
 }
 
@@ -63,7 +74,6 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
-    app.commandLine.appendSwitch("disable-http-cache");
   });
 });
 
@@ -73,6 +83,7 @@ app.on("window-all-closed", () => {
   }
 });
 
+// Catch all new window dialogs
 app.on("web-contents-created", (e, wc) => {
   wc.setWindowOpenHandler((details) => {
     const url = details.url;

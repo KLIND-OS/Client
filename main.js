@@ -50,6 +50,7 @@ function createWindow() {
     win.webContents.executeJavaScript(
       `mainFileManager.saveFromUri("${uri}", "${name}")`
     );
+    win.closeDeveloperTools();
   });
 
   // Set preload to all webviews

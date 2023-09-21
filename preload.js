@@ -33,4 +33,14 @@ setInterval(() => {
             })
         })
     })
-}, 500);
+}, 200);
+
+
+var doneA = []
+setInterval(() => {
+    document.querySelectorAll("a").forEach(a => {
+        if (doneA.includes(a)) return
+        doneA.push(a)
+        a.setAttribute("target", "_blank")
+    })
+}, 200);

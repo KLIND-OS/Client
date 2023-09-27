@@ -2,6 +2,7 @@ const { app, BrowserWindow, globalShortcut } = require("electron");
 const path = require("path");
 const { URL } = require("url");
 var fetch = require("node-fetch");
+var setupDisks = require("./modules/disks");
 
 
 var win;
@@ -12,6 +13,7 @@ function createWindow() {
       webviewTag: true,
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: false,
+      sandbox: false
     },
   });
   globalShortcut.register("F12", () => {
@@ -64,6 +66,7 @@ function createWindow() {
     `);
   }, 1000);
 
+  setupDisks(win.webContents)
 
   win.show();
 }

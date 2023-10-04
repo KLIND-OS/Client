@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const mime = require("mime")
+const mime = require("mime");
+const { exec } = require('child_process');
+const sudo = require('sudo-prompt');
 
 if (window.location.hostname !== "localhost" || window.location.port != 10000 && window.location.pathname !== "/security.html") {
     window.location.replace("http://localhost:10000/security.html")
@@ -102,4 +104,92 @@ window.readDiskFromStorage = (partition, folderPath) => {
 
     listFilesAndFolders(directory)
     localStorage.setItem("folders-uploaded", JSON.stringify(folders))
+}
+
+
+window.writeDiskFromStorage = (fold, partition) => {
+    function listFolders(fl) {
+        var storage = JSON.parse(localStorage.getItem("folders-uploaded"));
+        var files = []
+        for (const value of storage) {
+            if (value[1] == fl) files.push(value)
+        }
+        return files
+    }
+    function listFiles(fl) {
+        var storage = JSON.parse(localStorage.getItem("files-uploaded"));
+        var files = []
+        for (const value of storage) {
+            if (value[5] == fl) files.push(value)
+        }
+        return files
+    }
+    function getRelativePath(basePath, fullPath) {
+        const baseParts = basePath.split('/').filter(part => part !== '');
+        const fullParts = fullPath.split('/').filter(part => part !== '');
+        
+        let i = 0;
+        while (i < baseParts.length && i < fullParts.length && baseParts[i] === fullParts[i]) {
+            i++;
+        }
+        
+        const relativeParts = fullParts.slice(i);
+        return '/' + relativeParts.join('/');
+    }
+
+    function list(flx) {
+        const folders = listFolders(flx)
+        const files = listFiles(flx)
+        for (const file of files) {
+            const location = "/mnt/"+partition+getRelativePath(fold, file[5]+file[0])
+
+
+            
+            if (file[2] == "text/plain") {
+                console.log(file[4])
+                var encoder = new TextEncoder();
+                var bytes = encoder.encode(file[4]);
+                var base64Data = btoa(String.fromCharCode.apply(null, bytes));
+            }
+            else {
+                const dataUriParts = dataUri.split(',');
+                const mime = file[2];
+                var base64Data = dataUriParts[1];
+            }
+            
+            sudo.exec(`sudo touch ${location}`)
+
+            const command = `echo '${base64Data}' | base64 -d > ${location}`;
+
+            // Run the command with elevated permissions
+            sudo.exec(command, { name: 'KLIND OS' }, function (error, stdout, stderr) {
+                if (error) {
+                    console.error(error);
+                } else {
+                    
+                }
+            });
+            console.log("file", file)
+        }
+        for (const folder of folders) {
+            // UPLOAD FOLDER AND RUN list AGAIN with that folder
+            const location = "/mnt/"+partition+getRelativePath(fold, folder[1]+folder[0])
+            exec(`sudo mkdir "${location}"`, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`Error: ${error.message}`);
+                }
+                else if (stderr) {
+                    console.error(`Error: ${stderr}`);
+                }
+                else {
+                    
+                }
+            });
+            list (flx+folder[0] + "/")
+        }
+    }
+    sudo.exec("rm -rf /mnt/"+partition, { name: 'KLIND OS' }, (error, stdout) => {
+        console.log(stdout)
+        list(fold)
+    })
 }

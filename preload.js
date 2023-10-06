@@ -188,7 +188,7 @@ window.writeDiskFromStorage = (fold, partition) => {
             list (flx+folder[0] + "/")
         }
     }
-    sudo.exec("rm -rf /mnt/"+partition, { name: 'KLIND OS' }, (error, stdout) => {
+    sudo.exec("rm -rf /mnt/"+partition+"/*", { name: 'KLIND OS' }, (error, stdout) => {
         console.log(stdout)
         list(fold)
     })

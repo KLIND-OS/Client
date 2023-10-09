@@ -51,145 +51,207 @@ setInterval(() => {
     })
 }, 200);
 
-
-window.readDiskFromStorage = (partition, folderPath) => {
-    directory = "/mnt/"+partition 
-    var folders = JSON.parse(localStorage.getItem("folders-uploaded"))
-
-
-    function listFilesAndFolders(directory) {
-        try {
-            const items = fs.readdirSync(directory);
-        
-            items.forEach((item) => {
-                const itemPath = path.join(directory, item);
-                const stats = fs.statSync(itemPath);
-            
-                if (stats.isDirectory()) {
-                    const parentDirectory = path.join(folderPath, path.dirname(itemPath.replace("/mnt/"+partition+"/","")))+"/";
-                    const name = path.basename(itemPath);
-
-
-                    
-                    if (folders) {
-                        folders.push([name, parentDirectory])
-                    }
-                    else {
-                        folders = [[name, parentDirectory]]
-                    }
-
-                    return listFilesAndFolders(itemPath);
-                } else if (stats.isFile()) {
-                    try {
-                        const parentDirectory = path.join(folderPath, path.dirname(itemPath.replace("/mnt/"+partition+"/","")))+"/";
-                        const name = path.basename(itemPath);
-
-
-                        const data = fs.readFileSync(itemPath);
-                        const mimeType = mime.getType(itemPath) || 'application/octet-stream';
-
-                        const base64Data = Buffer.from(data).toString('base64');
-                        const uri = `data:${mimeType};base64,${base64Data}`;
-
-                        mainFileManager.saveFromUri(uri, name, parentDirectory, false)
-                    } catch (err) {
-                        console.error('Error reading file:', err);
-                    }
-                }
-            });
-        } catch (err) {
-            
-        }
-    }
-
-    listFilesAndFolders(directory)
-    localStorage.setItem("folders-uploaded", JSON.stringify(folders))
-}
-
-
-window.writeDiskFromStorage = (fold, partition) => {
-    function listFolders(fl) {
-        var storage = JSON.parse(localStorage.getItem("folders-uploaded"));
-        var files = []
-        for (const value of storage) {
-            if (value[1] == fl) files.push(value)
-        }
-        return files
-    }
-    function listFiles(fl) {
-        var storage = JSON.parse(localStorage.getItem("files-uploaded"));
-        var files = []
-        for (const value of storage) {
-            if (value[5] == fl) files.push(value)
-        }
-        return files
-    }
-    function getRelativePath(basePath, fullPath) {
-        const baseParts = basePath.split('/').filter(part => part !== '');
-        const fullParts = fullPath.split('/').filter(part => part !== '');
-        
-        let i = 0;
-        while (i < baseParts.length && i < fullParts.length && baseParts[i] === fullParts[i]) {
-            i++;
-        }
-        
-        const relativeParts = fullParts.slice(i);
-        return '/' + relativeParts.join('/');
-    }
-
-    function list(flx) {
-        const folders = listFolders(flx)
-        const files = listFiles(flx)
-        for (const file of files) {
-            const location = "/mnt/"+partition+getRelativePath(fold, file[5]+file[0])
-
-
-            
-            if (file[2] == "text/plain") {
-                console.log(file[4])
-                var encoder = new TextEncoder();
-                var bytes = encoder.encode(file[4]);
-                var base64Data = btoa(String.fromCharCode.apply(null, bytes));
+class ___lowlevelapi_volume_devices {
+    static getAll(callback) {
+        exec(`pactl list sinks | grep -ie "description:"|cut -d: -f2`, { name: "KLIND OS" }, function (error, stdout, stderr) {
+            if (error) {
+                throw new Error("Filed to get all devices!")
             }
             else {
-                const dataUriParts = dataUri.split(',');
-                const mime = file[2];
-                var base64Data = dataUriParts[1];
+                var all = stdout.split("\n")
+                var ret = []
+                for (const string of all) {
+                    if (string.trim() == "") continue
+                    ret.push(string.trim())
+                }
+                callback(ret)
+            }
+        })
+    }
+    static getDefault(callback) {
+        exec(`pactl list sinks | grep -A1 "Name: $(pactl info | grep "Default Sink" | awk '{print $3}')" | grep "Description" | awk -F": " "{print \$2}"`,
+        { name: "KLIND OS" },
+        function (error, stdout, stderr) {
+            if (error) {
+                throw new Error("Filed to set device!")
+            }
+            else {
+                callback(stdout.replace("Description: ", "").trim())
+            }
+        })
+    }
+    static set(description) {
+        exec(`pactl set-default-sink $(pactl list sinks|grep -C2 -F "Description: ${description}"|grep Name|cut -d: -f2|xargs)`,
+        { name: "KLIND OS" },
+        function (error, stdout, stderr) {
+            if (error) {
+                throw new Error("Filed to set device!")
+            }
+        })
+    }
+}
+
+class ___lowlevelapi_volume {
+    static getVolume(callback) {
+        exec("pamixer --get-volume", { name: 'KLIND OS' }, function (error, stdout, stderr) {
+            if (error) {
+                throw new Error("Failed to get volume!")
+            } else {
+                callback(stdout)
+            }
+        });
+    }
+    static up() {
+        exec("pamixer -u")
+        exec("pamixer -i 5")
+    }
+    static down() {
+        exec("pamixer -u")
+        exec("pamixer -d 5")
+    }
+    static change(volume) {
+        exec(`pamixer --set-volume ${volume}`)
+    }
+    static Devices = ___lowlevelapi_volume_devices
+}
+
+class LowLevelApi {
+    static readDiskFromStorage(partition, folderPath) {
+        directory = "/mnt/"+partition 
+        var folders = JSON.parse(localStorage.getItem("folders-uploaded"))
+    
+    
+        function listFilesAndFolders(directory) {
+            try {
+                const items = fs.readdirSync(directory);
+            
+                items.forEach((item) => {
+                    const itemPath = path.join(directory, item);
+                    const stats = fs.statSync(itemPath);
+                
+                    if (stats.isDirectory()) {
+                        const parentDirectory = path.join(folderPath, path.dirname(itemPath.replace("/mnt/"+partition+"/","")))+"/";
+                        const name = path.basename(itemPath);
+    
+    
+                        
+                        if (folders) {
+                            folders.push([name, parentDirectory])
+                        }
+                        else {
+                            folders = [[name, parentDirectory]]
+                        }
+    
+                        return listFilesAndFolders(itemPath);
+                    } else if (stats.isFile()) {
+                        try {
+                            const parentDirectory = path.join(folderPath, path.dirname(itemPath.replace("/mnt/"+partition+"/","")))+"/";
+                            const name = path.basename(itemPath);
+    
+    
+                            const data = fs.readFileSync(itemPath);
+                            const mimeType = mime.getType(itemPath) || 'application/octet-stream';
+    
+                            const base64Data = Buffer.from(data).toString('base64');
+                            const uri = `data:${mimeType};base64,${base64Data}`;
+    
+                            mainFileManager.saveFromUri(uri, name, parentDirectory, false)
+                        } catch (err) {
+                            console.error('Error reading file:', err);
+                        }
+                    }
+                });
+            } catch (err) {
+                
+            }
+        }
+    
+        listFilesAndFolders(directory)
+        localStorage.setItem("folders-uploaded", JSON.stringify(folders))
+    }
+    static writeDiskFromStorage(fold, partition) {
+        function listFolders(fl) {
+            var storage = JSON.parse(localStorage.getItem("folders-uploaded"));
+            var files = []
+            for (const value of storage) {
+                if (value[1] == fl) files.push(value)
+            }
+            return files
+        }
+        function listFiles(fl) {
+            var storage = JSON.parse(localStorage.getItem("files-uploaded"));
+            var files = []
+            for (const value of storage) {
+                if (value[5] == fl) files.push(value)
+            }
+            return files
+        }
+        function getRelativePath(basePath, fullPath) {
+            const baseParts = basePath.split('/').filter(part => part !== '');
+            const fullParts = fullPath.split('/').filter(part => part !== '');
+            
+            let i = 0;
+            while (i < baseParts.length && i < fullParts.length && baseParts[i] === fullParts[i]) {
+                i++;
             }
             
-            sudo.exec(`sudo touch ${location}`)
-
-            const command = `echo '${base64Data}' | base64 -d > ${location}`;
-
-            // Run the command with elevated permissions
-            sudo.exec(command, { name: 'KLIND OS' }, function (error, stdout, stderr) {
-                if (error) {
-                    console.error(error);
-                } else {
-                    
-                }
-            });
-            console.log("file", file)
+            const relativeParts = fullParts.slice(i);
+            return '/' + relativeParts.join('/');
         }
-        for (const folder of folders) {
-            // UPLOAD FOLDER AND RUN list AGAIN with that folder
-            const location = "/mnt/"+partition+getRelativePath(fold, folder[1]+folder[0])
-            exec(`sudo mkdir "${location}"`, (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`Error: ${error.message}`);
-                }
-                else if (stderr) {
-                    console.error(`Error: ${stderr}`);
+    
+        function list(flx) {
+            const folders = listFolders(flx)
+            const files = listFiles(flx)
+            for (const file of files) {
+                const location = "/mnt/"+partition+getRelativePath(fold, file[5]+file[0])
+    
+    
+                
+                if (file[2] == "text/plain") {
+                    var encoder = new TextEncoder();
+                    var bytes = encoder.encode(file[4]);
+                    var base64Data = btoa(String.fromCharCode.apply(null, bytes));
                 }
                 else {
-                    
+                    const dataUriParts = dataUri.split(',');
+                    const mime = file[2];
+                    var base64Data = dataUriParts[1];
                 }
-            });
-            list (flx+folder[0] + "/")
+                
+                sudo.exec(`sudo touch ${location}`)
+    
+                const command = `echo '${base64Data}' | base64 -d > ${location}`;
+    
+                // Run the command with elevated permissions
+                sudo.exec(command, { name: 'KLIND OS' }, function (error, stdout, stderr) {
+                    if (error) {
+                        console.error(error);
+                    } else {
+                        
+                    }
+                });
+            }
+            for (const folder of folders) {
+                // UPLOAD FOLDER AND RUN list AGAIN with that folder
+                const location = "/mnt/"+partition+getRelativePath(fold, folder[1]+folder[0])
+                exec(`sudo mkdir "${location}"`, (error, stdout, stderr) => {
+                    if (error) {
+                        console.error(`Error: ${error.message}`);
+                    }
+                    else if (stderr) {
+                        console.error(`Error: ${stderr}`);
+                    }
+                    else {
+                        
+                    }
+                });
+                list (flx+folder[0] + "/")
+            }
         }
+        sudo.exec("rm -rf /mnt/"+partition+"/*", { name: 'KLIND OS' }, (error, stdout) => {
+            list(fold)
+        })
     }
-    sudo.exec("rm -rf /mnt/"+partition+"/*", { name: 'KLIND OS' }, (error, stdout) => {
-        console.log(stdout)
-        list(fold)
-    })
+    static Volume = ___lowlevelapi_volume
 }
+window.LowLevelApi = LowLevelApi

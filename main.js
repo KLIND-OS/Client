@@ -3,6 +3,7 @@ const path = require("path");
 const { URL } = require("url");
 var fetch = require("node-fetch");
 var setupDisks = require("./modules/disks");
+var setupScripts = require("./modules/scripts")
 
 
 var win;
@@ -67,6 +68,7 @@ function createWindow() {
   }, 1000);
 
   setupDisks(win.webContents)
+  setupScripts(win.webContents)
 
   win.show();
 }

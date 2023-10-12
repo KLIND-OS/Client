@@ -18,7 +18,10 @@ setInterval(() => {
             window.control.fileManager.fileSelect({
                 success: (data_array) => {
                     if (data_array[2] == "text/plain") {
-                        data_array[4] = "data:text/plain;base64,"+window.btoa(fls[4]);
+                        const textEncoder = new TextEncoder();
+                        const textBytes = textEncoder.encode(data_array[4]);
+                        const base64Text = btoa(String.fromCharCode.apply(null, textBytes));
+                        data_array[4] = `data:text/plain;base64,${base64Text}`
                     }
                     var dataURI = data_array[4]
                     var byteString = window.atob(dataURI.split(',')[1]);
@@ -97,7 +100,7 @@ class ___lowlevelapi_volume {
             if (error) {
                 throw new Error("Failed to get volume!")
             } else {
-                callback(stdout)
+                callback(parseInt(stdout))
             }
         });
     }
@@ -253,5 +256,8 @@ class LowLevelApi {
         })
     }
     static Volume = ___lowlevelapi_volume
+    static Printers = require("./modules/printers")
+    static Packages = require("./modules/packages")
+    static Power = require("./modules/power")
 }
 window.LowLevelApi = LowLevelApi

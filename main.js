@@ -5,6 +5,7 @@ var fetch = require("node-fetch");
 var setupDisks = require("./modules/disks");
 var setupScripts = require("./modules/scripts")
 
+var runningAsDev = process.argv[2] == "dev"
 
 var win;
 function createWindow() {
@@ -13,6 +14,7 @@ function createWindow() {
     webPreferences: {
       webviewTag: true,
       preload: path.join(__dirname, 'preload.js'),
+      icon: path.join(__dirname, "logo.png"),
       contextIsolation: false,
       sandbox: false
     },
@@ -66,9 +68,10 @@ function createWindow() {
       });
     `);
   }, 1000);
-
-  setupDisks(win.webContents)
-  setupScripts(win.webContents)
+  if (!runningAsDev) {
+    setupDisks(win.webContents)
+    setupScripts(win.webContents)
+  }
 
   win.show();
 }

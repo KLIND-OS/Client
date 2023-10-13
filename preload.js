@@ -18,10 +18,8 @@ setInterval(() => {
             window.control.fileManager.fileSelect({
                 success: (data_array) => {
                     if (data_array[2] == "text/plain") {
-                        const textEncoder = new TextEncoder();
-                        const textBytes = textEncoder.encode(data_array[4]);
-                        const base64Text = btoa(String.fromCharCode.apply(null, textBytes));
-                        data_array[4] = `data:text/plain;base64,${base64Text}`
+                        let encodedText = btoa(data_array[4]);
+                        data_array[4] = 'data:text/plain;charset=utf-8,' + encodedText;
                     }
                     var dataURI = data_array[4]
                     var byteString = window.atob(dataURI.split(',')[1]);
@@ -258,7 +256,7 @@ class LowLevelApi {
                 if (file[2] == "text/plain") {
                     var encoder = new TextEncoder();
                     var bytes = encoder.encode(file[4]);
-                    var base64Data = btoa(String.fromCharCode.apply(null, bytes));
+                    var base64Data = btoa(bytes);
                 }
                 else {
                     const dataUriParts = dataUri.split(',');

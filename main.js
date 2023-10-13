@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut } = require("electron");
+const { app, BrowserWindow, globalShortcut, ipcMain } = require("electron");
 const path = require("path");
 const { URL } = require("url");
 var fetch = require("node-fetch");
@@ -24,7 +24,12 @@ function createWindow() {
   });
   win.loadURL("http://localhost:10000");
   win.setMenu(null);
-
+  ipcMain.on("getLocalStorage", (event, data) => {
+    win.webContents.executeJavaScript("localStorage.getItem('files-uploaded')")
+    .then(result => {
+      event.reply(data, result)
+    })
+  })
   // Set custom download dialog
   win.webContents.session.on("will-download", async (event, item) => {
     event.preventDefault();

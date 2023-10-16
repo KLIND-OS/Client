@@ -49,8 +49,8 @@ setInterval(() => {
         if (doneIframes.includes(iframe)) return
         doneIframes.push(iframe)
         iframe.addEventListener("load", e => {
-           e.target.contentWindow.eval(`var doneInputs = []
-           setInterval(() => {
+            e.target.contentWindow.eval(`var doneInputs = []
+            setInterval(() => {
                document.querySelectorAll("input[type='file']").forEach(input => {
                    if (doneInputs.includes(input)) return
                    doneInputs.push(input)

@@ -66,12 +66,14 @@ function createWindow() {
   // Set preload to all webviews
   const PRELOAD_WEBVIEW_PATH = path.join(__dirname, 'preload-webview.js');
   setInterval(() => {
-    win.webContents.executeJavaScript(`
+    try {
+      win.webContents.executeJavaScript(`
       var webviews = document.querySelectorAll('webview');
       webviews.forEach(webview => {
         webview.setAttribute('preload', 'file://${PRELOAD_WEBVIEW_PATH}');
       });
     `);
+    }catch{}
   }, 1000);
   if (!runningAsDev) {
     setupDisks(win.webContents)

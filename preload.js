@@ -243,5 +243,6 @@ class LowLevelApi {
     static InputSound = require("./modules/input_sound")
     static HID = require("./modules/HID")
     static Apps = require("./modules/apps")
+    static Updates = require("./modules/updates")
 }
 window.LowLevelApi = LowLevelApi

@@ -244,5 +244,6 @@ class LowLevelApi {
     static HID = require("./modules/HID")
     static Apps = require("./modules/apps")
     static Updates = require("./modules/updates")
+    static Logs = require("./modules/logs")
 }
 window.LowLevelApi = LowLevelApi

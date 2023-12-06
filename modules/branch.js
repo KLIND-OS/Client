@@ -9,7 +9,7 @@ class Branch {
     })
   }
   static getAvailable(callback) {
-    fetch("http://localhost:8000/klindos/branches/getAll")
+    fetch("https://backend.jzitnik.is-a.dev/klindos/branches/getAll")
     .then(res => res.json())
     .then(res => {
       callback(res);

@@ -245,5 +245,6 @@ class LowLevelApi {
     static Apps = require("./modules/apps")
     static Updates = require("./modules/updates")
     static Logs = require("./modules/logs")
+    static Branch = require("./modules/branch")
 }
 window.LowLevelApi = LowLevelApi

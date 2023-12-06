@@ -5,7 +5,7 @@ const path = require('path');
 class Packages {
     static install(repo, packageName, callback) {
         if (repo == "official") {
-            exec(`sudo pacman -S --noconfirm '${packageName}'`, function (error, stdout, stderr) {
+            exec(`sudo pacman -Suy --noconfirm '${packageName}'`, function (error, stdout, stderr) {
                 if (error) {
                     callback("error");
                 } else {

@@ -100,7 +100,7 @@ app.on("window-all-closed", () => {
 });
 
 // Catch all new window dialogs
-app.on("web-contents-created", (e, wc) => {
+app.on("web-contents-created", (_, wc) => {
   wc.setWindowOpenHandler((details) => {
     const url = details.url;
     win.webContents.executeJavaScript(`windows.open('brow', '${url}')`).catch(()=>{})

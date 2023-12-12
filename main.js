@@ -4,6 +4,7 @@ const { URL } = require("url");
 var fetch = require("node-fetch");
 var setupDisks = require("./modules/disks");
 var setupScripts = require("./modules/scripts")
+const Base64 = require("./modules/base64")
 
 var runningAsDev = process.argv[2] == "dev"
 
@@ -44,14 +45,17 @@ function createWindow() {
       const response = await fetch(url);
       var buffer = await response.arrayBuffer();
       const uint8Array = new Uint8Array(buffer);
-
-      let binaryString = "";
-      for (let i = 0; i < uint8Array.length; i++) {
-        binaryString += String.fromCharCode(uint8Array[i]);
+      if (response.headers.get("content-type") == "text/plain") {
+        const textDecoder = new TextDecoder('utf-8');
+        const utf8String = textDecoder.decode(uint8Array);
+        var base64String = Base64.encode(utf8String);
+      } else {
+        var utf8String = "";
+        for (let i = 0; i < uint8Array.length; i++) {
+          utf8String += String.fromCharCode(uint8Array[i]);
+        }
+        var base64String = btoa(utf8String);
       }
-
-      const base64String = btoa(binaryString);
-
       var uri = `data:${response.headers.get(
         "content-type"
       )};base64,${base64String}`;
@@ -60,7 +64,6 @@ function createWindow() {
     win.webContents.executeJavaScript(
       `mainFileManager.saveFromUri("${uri}", "${name}")`
     );
-    win.closeDeveloperTools();
   });
 
   // Set preload to all webviews

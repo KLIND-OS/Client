@@ -17,12 +17,8 @@ setInterval(() => {
             e.preventDefault();
             window.control.fileManager.fileSelect({
                 success: (data_array) => {
-                    if (data_array[2] == "text/plain") {
-                        let encodedText = btoa(data_array[4]);
-                        data_array[4] = 'data:text/plain;charset=utf-8,' + encodedText;
-                    }
                     var dataURI = data_array[4]
-                    var byteString = window.atob(dataURI.split(',')[1]);
+                    var byteString = Base64.decode(dataURI.split(',')[1]);
                     var mimeString = data_array[2]
                     var arrayBuffer = new ArrayBuffer(byteString.length);
                     var uint8Array = new Uint8Array(arrayBuffer);
@@ -58,14 +54,8 @@ setInterval(() => {
                        e.preventDefault();
                        parent.control.fileManager.fileSelect({
                            success: (data_array) => {
-                               if (data_array[2] == "text/plain") {
-                                   const textEncoder = new TextEncoder();
-                                   const textBytes = textEncoder.encode(data_array[4]);
-                                   const base64Text = btoa(String.fromCharCode.apply(null, textBytes));
-                                   data_array[4] = 'data:text/plain;base64,'+base64Text
-                               }
                                var dataURI = data_array[4]
-                               var byteString = window.atob(dataURI.split(',')[1]);
+                               var byteString = Base64.decode(dataURI.split(',')[1]);
                                var mimeString = data_array[2]
                                var arrayBuffer = new ArrayBuffer(byteString.length);
                                var uint8Array = new Uint8Array(arrayBuffer);
@@ -101,7 +91,7 @@ setInterval(() => {
 
 class LowLevelApi {
     static readDiskFromStorage(partition, folderPath) {
-        directory = "/mnt/"+partition 
+        var directory = "/mnt/"+partition 
         var folders = JSON.parse(localStorage.getItem("folders-uploaded"))
     
     
@@ -191,22 +181,15 @@ class LowLevelApi {
     
     
                 
-                if (file[2] == "text/plain") {
-                    var encoder = new TextEncoder();
-                    var bytes = encoder.encode(file[4]);
-                    var base64Data = btoa(bytes);
+                const dataUriParts = file[4].split(',');
+                var base64Data = dataUriParts[1];
+                if (!base64Data) {
+                    var base64Data = Base64.encode(file[4]);
                 }
-                else {
-                    const dataUriParts = dataUri.split(',');
-                    const mime = file[2];
-                    var base64Data = dataUriParts[1];
-                }
-                
-                sudo.exec(`sudo touch ${location}`)
+                sudo.exec(`sudo touch "${location}"`)
     
-                const command = `echo '${base64Data}' | base64 -d > ${location}`;
+                const command = `echo '${base64Data}' | base64 -d > '${location}'`;
     
-                // Run the command with elevated permissions
                 sudo.exec(command, { name: 'KLIND OS' }, function (error, stdout, stderr) {
                     if (error) {
                         console.error(error);

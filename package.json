@@ -6,7 +6,8 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . dev",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "startNoSandbox": "electron . --no-sandbox"
   },
   "repository": {
     "type": "git",

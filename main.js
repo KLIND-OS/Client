@@ -26,7 +26,7 @@ function createWindow() {
   win.loadURL("http://localhost:10000");
   win.setMenu(null);
   ipcMain.on("getLocalStorage", (event, data) => {
-    win.webContents.executeJavaScript("localStorage.getItem('files-uploaded')")
+    win.webContents.executeJavaScript("storage.getSync('files-uploaded')")
     .then(result => {
       event.reply(data, result)
     })

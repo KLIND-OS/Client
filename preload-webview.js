@@ -211,7 +211,7 @@ function showfilemanager(el) {
                   namefile = locationsplit[locationsplit.length - 1];
                   folder =
                     removebyindex(locationsplit, locationsplit.length - 1).join("/") + "/";
-                  var stored = JSON.parse(localStorage);
+                  var stored = localStorage;
                   if (stored) {
                     for (var i = 0; i < stored.length; i++) {
                       if (stored[i][5] == folder) {

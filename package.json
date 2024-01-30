@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "child_process": "^1.0.2",
+    "electron-json-storage": "^4.6.0",
     "fs": "^0.0.1-security",
     "mime": "^3.0.0",
     "node-fetch": "^2.7.0",

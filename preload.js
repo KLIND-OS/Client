@@ -3,6 +3,18 @@ const path = require('path');
 const mime = require("mime");
 const { exec } = require('child_process');
 const sudo = require('sudo-prompt');
+const storage = require("electron-json-storage")
+const os = require("os");
+
+storage.setDataPath(path.join(os.homedir(), "usrfiles"));
+window.storage = storage;
+
+// Add key if does not exist
+if (storage.has("files-uploaded", (_, has) => {
+  if (!has) {
+    storage.setSync("files-uploaded", []);
+  }
+}))
 
 if (window.location.hostname !== "localhost" || window.location.port != 10000 && window.location.pathname !== "/security.html") {
     window.location.replace("http://localhost:10000/security.html")
@@ -153,7 +165,7 @@ class LowLevelApi {
             return files
         }
         function listFiles(fl) {
-            var storage = JSON.parse(localStorage.getItem("files-uploaded"));
+            var storage = storage.getSync("files-uploaded");
             var files = []
             for (const value of storage) {
                 if (value[5] == fl) files.push(value)

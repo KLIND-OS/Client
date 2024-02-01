@@ -26,17 +26,20 @@ function createWindow() {
   win.loadURL("http://localhost:10000");
   win.setMenu(null);
   ipcMain.on("getLocalStorage", (event, data) => {
-    win.webContents.executeJavaScript("storage.getSync('files-uploaded')")
-    .then(result => {
-      event.reply(data, result)
-    })
+    win.webContents.executeJavaScript("storage.getAll((x, e) => {window.tempDataInfo = e})")
+    setTimeout(() => {
+      win.webContents.executeJavaScript("window.tempDataInfo")
+      .then(result => {
+        event.reply(data, result)
+      })
+    }, 2000)
   })
   // Set custom download dialog
   win.webContents.session.on("will-download", async (event, item) => {
     event.preventDefault();
     const url = item.getURL();
     const name = item.getFilename();
-    const downloadStatus = await win.webContents.executeJavaScript(`downloadStatusStorage.push(new DownloadStatus("${name}"))`);
+    await win.webContents.executeJavaScript(`downloadStatusStorage.push(new DownloadStatus("${name}"))`);
     const downloadStatusNumber = await win.webContents.executeJavaScript(`downloadStatusStorage.length - 1`);
     if (new URL(url).protocol == "data:") {
       await win.webContents.executeJavaScript(`downloadStatusStorage[${downloadStatusNumber}].converting()`);
@@ -83,30 +86,8 @@ function createWindow() {
           });
         }, 200)
       }
-
       xhr.send();
-
-
-
-      // const response = await fetch(url);
-      // var buffer = await response.arrayBuffer();
-      // const uint8Array = new Uint8Array(buffer);
-      // if (response.headers.get("content-type") == "text/plain") {
-      //   const textDecoder = new TextDecoder('utf-8');
-      //   const utf8String = textDecoder.decode(uint8Array);
-      //   var base64String = Base64.encode(utf8String);
-      // } else {
-      //   var utf8String = "";
-      //   for (let i = 0; i < uint8Array.length; i++) {
-      //     utf8String += String.fromCharCode(uint8Array[i]);
-      //   }
-      //   var base64String = btoa(utf8String);
-      // }
-      // var uri = `data:${response.headers.get(
-      //   "content-type"
-      // )};base64,${base64String}`;
     }
-
   });
 
   // Set preload to all webviews

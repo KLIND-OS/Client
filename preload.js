@@ -5,6 +5,7 @@ const { exec } = require('child_process');
 const sudo = require('sudo-prompt');
 const storage = require("electron-json-storage")
 const os = require("os");
+window.tempDataInfo = "";
 
 storage.setDataPath(path.join(os.homedir(), "usrfiles"));
 window.storage = storage;

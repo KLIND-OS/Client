@@ -1,10 +1,10 @@
 const { app, BrowserWindow, globalShortcut, ipcMain } = require("electron");
 const path = require("path");
 const { URL } = require("url");
-var fetch = require("node-fetch");
 var setupDisks = require("./modules/disks");
 var setupScripts = require("./modules/scripts")
 const Base64 = require("./modules/base64")
+var XMLHttpRequest = require('xhr2');
 
 var runningAsDev = process.argv[2] == "dev"
 
@@ -34,36 +34,79 @@ function createWindow() {
   // Set custom download dialog
   win.webContents.session.on("will-download", async (event, item) => {
     event.preventDefault();
-    win.webContents.executeJavaScript(
-      "spawnNotification('Stahování', 'Soubor se začíná stahovat')"
-    );
     const url = item.getURL();
     const name = item.getFilename();
+    const downloadStatus = await win.webContents.executeJavaScript(`downloadStatusStorage.push(new DownloadStatus("${name}"))`);
+    const downloadStatusNumber = await win.webContents.executeJavaScript(`downloadStatusStorage.length - 1`);
     if (new URL(url).protocol == "data:") {
-      var uri = url;
+      await win.webContents.executeJavaScript(`downloadStatusStorage[${downloadStatusNumber}].converting()`);
+      setTimeout(() => {
+        win.webContents.executeJavaScript(
+          `mainFileManager.saveFromUri("${url}", "${name}")`
+        ).then(() => {
+          win.webContents.executeJavaScript(`downloadStatusStorage[${downloadStatusNumber}].finish()`);
+        })
+      }, 200);
     } else {
-      const response = await fetch(url);
-      var buffer = await response.arrayBuffer();
-      const uint8Array = new Uint8Array(buffer);
-      if (response.headers.get("content-type") == "text/plain") {
-        const textDecoder = new TextDecoder('utf-8');
-        const utf8String = textDecoder.decode(uint8Array);
-        var base64String = Base64.encode(utf8String);
-      } else {
-        var utf8String = "";
-        for (let i = 0; i < uint8Array.length; i++) {
-          utf8String += String.fromCharCode(uint8Array[i]);
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", url, true);
+      xhr.responseType = "arraybuffer";
+
+      xhr.onprogress = function(event) {
+        if (event.lengthComputable) {
+          const percentage = Math.round((event.loaded / event.total) * 100);
+          win.webContents.executeJavaScript(`downloadStatusStorage[${downloadStatusNumber}].updatePercentage(${percentage})`);
         }
-        var base64String = btoa(utf8String);
+      };
+
+      xhr.onload = async function() {
+        var buffer = xhr.response;
+        await win.webContents.executeJavaScript(`downloadStatusStorage[${downloadStatusNumber}].converting()`);
+        setTimeout(() => {
+          const uint8Array = new Uint8Array(buffer);
+          if (xhr.getResponseHeader("content-type") == "text/plain") {
+            const textDecoder = new TextDecoder('utf-8');
+            const utf8String = textDecoder.decode(uint8Array);
+            var base64String = Base64.encode(utf8String);
+          } else {
+            var utf8String = "";
+            for (let i = 0; i < uint8Array.length; i++) {
+              utf8String += String.fromCharCode(uint8Array[i]);
+            }
+            var base64String = btoa(utf8String);
+          }
+          var uri = `data:${xhr.getResponseHeader("content-type")};base64,${base64String}`;
+          win.webContents.executeJavaScript(
+            `mainFileManager.saveFromUri("${uri}", "${name}")`
+          ).then(() => {
+            win.webContents.executeJavaScript(`downloadStatusStorage[${downloadStatusNumber}].finish()`);
+          });
+        }, 200)
       }
-      var uri = `data:${response.headers.get(
-        "content-type"
-      )};base64,${base64String}`;
+
+      xhr.send();
+
+
+
+      // const response = await fetch(url);
+      // var buffer = await response.arrayBuffer();
+      // const uint8Array = new Uint8Array(buffer);
+      // if (response.headers.get("content-type") == "text/plain") {
+      //   const textDecoder = new TextDecoder('utf-8');
+      //   const utf8String = textDecoder.decode(uint8Array);
+      //   var base64String = Base64.encode(utf8String);
+      // } else {
+      //   var utf8String = "";
+      //   for (let i = 0; i < uint8Array.length; i++) {
+      //     utf8String += String.fromCharCode(uint8Array[i]);
+      //   }
+      //   var base64String = btoa(utf8String);
+      // }
+      // var uri = `data:${response.headers.get(
+      //   "content-type"
+      // )};base64,${base64String}`;
     }
 
-    win.webContents.executeJavaScript(
-      `mainFileManager.saveFromUri("${uri}", "${name}")`
-    );
   });
 
   // Set preload to all webviews

@@ -3,6 +3,54 @@ const path = require('path');
 const mime = require("mime");
 const { exec } = require('child_process');
 const sudo = require('sudo-prompt');
+const storage = require("electron-json-storage")
+const os = require("os");
+window.tempDataInfo = "";
+
+storage.setDataPath(path.join(os.homedir(), "usrfiles"));
+window.storage = storage;
+
+const originalget = window.storage.get;
+window.storage.get = (key, options, callback) => {
+  key = key.replaceAll("/", "$");
+  return originalget(key, options, callback)
+}
+
+const originalGetMany = window.storage.getMany;
+window.storage.getMany = (keys, options, callback) => {
+  keys = keys.map(path => path.replaceAll("/", "$"))
+  return originalGetMany(keys, options, callback);
+}
+
+const originalGetSync = window.storage.getSync;
+window.storage.getSync = (key, options) => {
+  key = key.replaceAll("/", "$");
+  return originalGetSync(key, options);
+}
+
+const originalHas = window.storage.has;
+window.storage.has = (key, options, callback) => {
+  key = key.replaceAll("/", "$");
+  return originalHas(key, options, callback);
+}
+
+const originalRemove = window.storage.remove;
+window.storage.remove = (key, options, callback) => {
+  key = key.replaceAll("/", "$");
+  return originalRemove(key, options, callback);
+}
+
+const originalSet = window.storage.set;
+window.storage.set = (key, json, options, callback, retries) => {
+  key = key.replaceAll("/", "$");
+  return originalSet(key, json, options, callback, retries);
+}
+
+const originalSetSync = window.storage.setSync;
+window.storage.setSync = (key, json, options) => {
+  key = key.replaceAll("/", "$");
+  return originalSetSync(key, json, options)
+}
 
 if (window.location.hostname !== "localhost" || window.location.port != 10000 && window.location.pathname !== "/security.html") {
     window.location.replace("http://localhost:10000/security.html")
@@ -153,12 +201,11 @@ class LowLevelApi {
             return files
         }
         function listFiles(fl) {
-            var storage = JSON.parse(localStorage.getItem("files-uploaded"));
-            var files = []
-            for (const value of storage) {
-                if (value[5] == fl) files.push(value)
+            var storage = storage.getSync(fl);
+            if (storage) {
+                return storage;
             }
-            return files
+            return []
         }
         function getRelativePath(basePath, fullPath) {
             const baseParts = basePath.split('/').filter(part => part !== '');

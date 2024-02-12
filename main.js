@@ -11,7 +11,7 @@ var runningAsDev = process.argv[2] == "dev"
 var win;
 function createWindow() {
   win = new BrowserWindow({
-    fullscreen: true,
+    fullscreen: !runningAsDev,
     webPreferences: {
       webviewTag: true,
       preload: path.join(__dirname, 'preload.js'),

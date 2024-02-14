@@ -1,7 +1,7 @@
 {
   "name": "klindosclient",
   "version": "1.0.0",
-  "description": "KLIND OS Client je proram pro spuštění KLIND OS jako program",
+  "description": "KLIND OS Client je program pro spuštění KLIND OS.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

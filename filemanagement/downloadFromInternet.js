@@ -1,14 +1,21 @@
 const fs = require("fs");
+const { exec } = require("child_process");
+const { promisify } = require("util");
+const execPromise = promisify(exec);
+const path = require("path");
+const os = require("os");
 
 module.exports = async (win, event, item) => {
   const filename = item.getFilename();
-  const currentTime = new Date().getTime();
-  const mime = item.getMimeType();
+  const filepath = path.join(
+    os.homedir() + "/usrfiles/Downloads/",
+    filename,
+  );
+  item.setSavePath(filepath);
 
-  if (!fs.existsSync("/tmp/klindosdownload/")) {
-    fs.mkdirSync("/tmp/klindosdownload");
+  if (!fs.existsSync(os.homedir() + "/usrfiles/Downloads/")) {
+    fs.mkdirSync(os.homedir() + "/usrfiles/Downloads/");
   }
-  item.setSavePath("/tmp/klindosdownload/" + currentTime);
 
   await win.webContents.executeJavaScript(
     `downloadStatusStorage.push(new DownloadStatus("${filename}"))`,
@@ -18,33 +25,25 @@ module.exports = async (win, event, item) => {
   );
 
   function roundToTwoDecimalPlaces(number) {
-      let roundedNumber = Math.round(number * 100) / 100;
-      return roundedNumber.toFixed(2);
+    let roundedNumber = Math.round(number * 100) / 100;
+    return roundedNumber.toFixed(2);
   }
 
-  item.on("updated", (event, state) => {
+  item.on("updated", () => {
     const receivedBytes = item.getReceivedBytes();
     const totalBytes = item.getTotalBytes();
-    const percentage = roundToTwoDecimalPlaces((receivedBytes / totalBytes) * 100);
+    const percentage = roundToTwoDecimalPlaces(
+      (receivedBytes / totalBytes) * 100,
+    );
     win.webContents.executeJavaScript(
       `downloadStatusStorage[${downloadStatusNumber}].updatePercentage(${percentage})`,
     );
   });
-  item.once("done", async (event, state) => {
+  item.once("done", async (_, state) => {
     if (state === "completed") {
       await win.webContents.executeJavaScript(
-        `downloadStatusStorage[${downloadStatusNumber}].converting()`,
+        `downloadStatusStorage[${downloadStatusNumber}].finish()`,
       );
-      const contents = await fs.promises.readFile(
-        "/tmp/klindosdownload/" + currentTime,
-        { encoding: "base64" },
-      );
-      var uri = `data:${mime};base64,${contents}`;
-      await win.webContents.executeJavaScript(
-        `mainFileManager.saveFromUri("${uri}", "${filename}")`,
-      );
-      await fs.promises.unlink("/tmp/klindosdownload/" + currentTime);
-      await win.webContents.executeJavaScript(`downloadStatusStorage[${downloadStatusNumber}].finish()`);
     } else {
       console.error("Pepa");
     }

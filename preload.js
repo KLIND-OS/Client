@@ -5,6 +5,8 @@ const { exec } = require("child_process");
 const sudo = require("sudo-prompt");
 const storage = require("electron-json-storage");
 const os = require("os");
+const { promisify } = require("util");
+const mimeTypes = require("mime-types");
 window.tempDataInfo = "";
 
 storage.setDataPath(path.join(os.homedir(), "usrfiles"));
@@ -68,19 +70,20 @@ setInterval(() => {
     input.addEventListener("click", (e) => {
       e.preventDefault();
       window.control.fileManager.fileSelect({
-        success: (data_array) => {
-          var dataURI = data_array[4];
-          var byteString = Base64.decode(dataURI.split(",")[1]);
-          var mimeString = data_array[2];
-          var arrayBuffer = new ArrayBuffer(byteString.length);
-          var uint8Array = new Uint8Array(arrayBuffer);
-          for (var i = 0; i < byteString.length; i++) {
-            uint8Array[i] = byteString.charCodeAt(i);
+        success: async (path) => {
+          const binaryData = await mainFileManager.getContent(path);
+          var uint8Array = new Uint8Array(binaryData);
+          var mimeType = "application/octet-stream";
+          if (path.includes(".")) {
+            const parts = path.split(".");
+            const fileExtension = parts[parts.length - 1];
+            mimeType = mimeTypes.lookup(fileExtension);
           }
-          var blob = new Blob([uint8Array], { type: mimeString });
-          var file = new window.File([blob], data_array[0], {
-            type: mimeString,
-            lastModified: new Date(data_array[3]),
+          var blob = new Blob([uint8Array], { type: mimeType });
+          const parts = path.split("/");
+          const filename = parts[parts.length - 1];
+          var file = new window.File([blob], filename, {
+            type: mimeType,
           });
           const dataTransfer = new DataTransfer();
           dataTransfer.items.add(file);
@@ -107,17 +110,22 @@ setInterval(() => {
                    input.addEventListener("click", (e) => {
                        e.preventDefault();
                        parent.control.fileManager.fileSelect({
-                           success: (data_array) => {
-                               var dataURI = data_array[4]
-                               var byteString = Base64.decode(dataURI.split(',')[1]);
-                               var mimeString = data_array[2]
-                               var arrayBuffer = new ArrayBuffer(byteString.length);
-                               var uint8Array = new Uint8Array(arrayBuffer);
-                               for (var i = 0; i < byteString.length; i++) {
-                                   uint8Array[i] = byteString.charCodeAt(i);
+                           success: async (path) => {
+                               const binaryData = await mainFileManager.getContent(path);
+                               var uint8Array = new Uint8Array(binaryData);
+                               var mimeType = "application/octet-stream"
+                               if (path.includes(".")) {
+                                 const parts = path.split(".");
+                                 const fileExtension = parts[parts.length - 1];
+                                 mimeType = mimeTypes.lookup(fileExtension);
                                }
-                               var blob = new Blob([uint8Array], { type: mimeString });
-                               var file = new window.File([blob], data_array[0], { type: mimeString, lastModified: new Date(data_array[3])});
+                               var blob = new Blob([uint8Array], { type: mimeType });
+                               const parts = path.split("/");
+                               const filename = parts[parts.length - 1];
+                               var file = new window.File([blob], filename, {
+                                 type: mimeType,
+                               });
+
                                const dataTransfer = new DataTransfer();
                                dataTransfer.items.add(file);
                                e.target.files = dataTransfer.files;
@@ -142,143 +150,6 @@ setInterval(() => {
 }, 200);
 
 class LowLevelApi {
-  static readDiskFromStorage(partition, folderPath) {
-    var directory = "/mnt/" + partition;
-    var folders = JSON.parse(localStorage.getItem("folders-uploaded"));
-
-    function listFilesAndFolders(directory) {
-      try {
-        const items = fs.readdirSync(directory);
-
-        items.forEach((item) => {
-          const itemPath = path.join(directory, item);
-          const stats = fs.statSync(itemPath);
-
-          if (stats.isDirectory()) {
-            const parentDirectory =
-              path.join(
-                folderPath,
-                path.dirname(itemPath.replace("/mnt/" + partition + "/", "")),
-              ) + "/";
-            const name = path.basename(itemPath);
-
-            if (folders) {
-              folders.push([name, parentDirectory]);
-            } else {
-              folders = [[name, parentDirectory]];
-            }
-
-            return listFilesAndFolders(itemPath);
-          } else if (stats.isFile()) {
-            try {
-              const parentDirectory =
-                path.join(
-                  folderPath,
-                  path.dirname(itemPath.replace("/mnt/" + partition + "/", "")),
-                ) + "/";
-              const name = path.basename(itemPath);
-
-              const data = fs.readFileSync(itemPath);
-              const mimeType =
-                mime.getType(itemPath) || "application/octet-stream";
-
-              const base64Data = Buffer.from(data).toString("base64");
-              const uri = `data:${mimeType};base64,${base64Data}`;
-
-              mainFileManager.saveFromUri(uri, name, parentDirectory, false);
-            } catch (err) {
-              console.error("Error reading file:", err);
-            }
-          }
-        });
-      } catch (err) {}
-    }
-
-    listFilesAndFolders(directory);
-    localStorage.setItem("folders-uploaded", JSON.stringify(folders));
-  }
-  static writeDiskFromStorage(fold, partition) {
-    function listFolders(fl) {
-      var storage = JSON.parse(localStorage.getItem("folders-uploaded"));
-      var files = [];
-      for (const value of storage) {
-        if (value[1] == fl) files.push(value);
-      }
-      return files;
-    }
-    function listFiles(fl) {
-      var storage = storage.getSync(fl);
-      if (storage) {
-        return storage;
-      }
-      return [];
-    }
-    function getRelativePath(basePath, fullPath) {
-      const baseParts = basePath.split("/").filter((part) => part !== "");
-      const fullParts = fullPath.split("/").filter((part) => part !== "");
-
-      let i = 0;
-      while (
-        i < baseParts.length &&
-        i < fullParts.length &&
-        baseParts[i] === fullParts[i]
-      ) {
-        i++;
-      }
-
-      const relativeParts = fullParts.slice(i);
-      return "/" + relativeParts.join("/");
-    }
-
-    function list(flx) {
-      const folders = listFolders(flx);
-      const files = listFiles(flx);
-      for (const file of files) {
-        const location =
-          "/mnt/" + partition + getRelativePath(fold, file[5] + file[0]);
-
-        const dataUriParts = file[4].split(",");
-        var base64Data = dataUriParts[1];
-        if (!base64Data) {
-          var base64Data = Base64.encode(file[4]);
-        }
-        sudo.exec(`sudo touch "${location}"`);
-
-        const command = `echo '${base64Data}' | base64 -d > '${location}'`;
-
-        sudo.exec(
-          command,
-          { name: "KLIND OS" },
-          function (error, stdout, stderr) {
-            if (error) {
-              console.error(error);
-            } else {
-            }
-          },
-        );
-      }
-      for (const folder of folders) {
-        const location =
-          "/mnt/" + partition + getRelativePath(fold, folder[1] + folder[0]);
-        exec(`sudo mkdir "${location}"`, (error, stdout, stderr) => {
-          if (error) {
-            console.error(`Error: ${error.message}`);
-          } else if (stderr) {
-            console.error(`Error: ${stderr}`);
-          } else {
-          }
-        });
-        list(flx + folder[0] + "/");
-      }
-    }
-    sudo.exec(
-      "rm -rf /mnt/" + partition + "/*",
-      { name: "KLIND OS" },
-      (error, stdout) => {
-        list(fold);
-      },
-    );
-  }
   static Volume = require("./modules/output_sound");
   static Printers = require("./modules/printers");
   static Packages = require("./modules/packages");
@@ -291,5 +162,33 @@ class LowLevelApi {
   static Branch = require("./modules/branch");
   static child_process = require("child_process");
   static process = process;
+  static filesystem = {
+    fs: require("fs"),
+    promisify: promisify,
+    readdir: promisify(fs.readdir),
+    stat: promisify(fs.stat),
+    path: require("path"),
+    os: require("os"),
+    unlink: promisify(fs.unlink),
+    rm: promisify(fs.rm),
+    mkdir: promisify(fs.mkdir),
+    exists: async function (path) {
+      try {
+        await promisify(fs.access)(path, fs.constants.F_OK);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+    rename: promisify(fs.rename),
+    writeFile: promisify(fs.writeFile),
+    readFile: promisify(fs.readFile),
+    open: promisify(fs.open),
+    mimeTypes: mimeTypes,
+    migrations: {
+      migrateToBinary: require("./filemanagement/migrations/migrateToBinary")
+    }
+  };
+  static DiskManagement = require("./filemanagement/diskmanagement");
 }
 window.LowLevelApi = LowLevelApi;

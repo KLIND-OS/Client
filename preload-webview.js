@@ -133,20 +133,16 @@ var Base64 = {
   }, // End Function _utf8_decode
 };
 
-const { ipcRenderer } = require("electron");
+const fs = require("fs");
+const os = require("os");
+const pathmodule = require("path");
+const { promisify } = require("util");
+const mimeTypes = require("mime-types");
+
+const exists = promisify(fs.exists);
+const fsReadFile = promisify(fs.readFile);
 
 function showfilemanager(el) {
-  function getLocalStorage(callback) {
-    const id = ((length) =>
-      Array.from({ length }, () => Math.random().toString(36).charAt(2)).join(
-        "",
-      ))(10);
-    ipcRenderer.send("getLocalStorage", id);
-    ipcRenderer.on(id, (event, data) => {
-      callback(data);
-    });
-  }
-
   var main = document.createElement("div");
   main.style.display = "flex";
   main.style.position = "absolute";
@@ -172,43 +168,42 @@ function showfilemanager(el) {
   inner.appendChild(input);
   var submit = document.createElement("button");
   submit.textContent = "Nahrát";
-  submit.onclick = () => {
-    getLocalStorage((localStorage) => {
-      function getFile(location) {
-        let lastSlashIndex = location.lastIndexOf("/");
-        let directory = location.substring(0, lastSlashIndex + 1);
-        let filename = location.substring(lastSlashIndex + 1);
-        var stored = localStorage[directory.replaceAll("/", "$")];
-        for (var i = 0; i < stored.length; i++) {
-          if (stored[i][0] == filename) {
-            return stored[i];
-          }
-        }
+  submit.onclick = async () => {
+    async function getFile(location) {
+      const filepath = pathmodule.join(os.homedir() + "/usrfiles", location);
+
+      if (!(await exists(filepath))) {
+        return true;
       }
-      const path = input.value;
-      const fls = getFile(path);
-      if (fls === false) {
-        main.remove();
-        alert("Soubor neexistuje!");
-        return;
-      }
-      var byteString = Base64.decode(fls[4].split(",")[1]);
-      var arrayBuffer = new ArrayBuffer(byteString.length);
-      var uint8Array = new Uint8Array(arrayBuffer);
-      for (var i = 0; i < byteString.length; i++) {
-        uint8Array[i] = byteString.charCodeAt(i);
-      }
-      var blob = new Blob([uint8Array], { type: fls[2] });
-      var file = new window.File([blob], fls[0], {
-        type: fls[2],
-        lastModified: new Date(fls[3]),
-      });
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      el.files = dataTransfer.files;
-      el.dispatchEvent(new Event("change"));
+
+      return await fsReadFile(filepath, "binary");
+    }
+    const path = input.value;
+    const fls = await getFile(path);
+    if (fls === false) {
       main.remove();
+      alert("Soubor neexistuje!");
+      return;
+    }
+    var uint8Array = new Uint8Array(fls);
+    var mimeType = "application/octet-stream";
+    if (path.includes(".")) {
+      const parts = path.split(".");
+      const fileExtension = parts[parts.length - 1];
+      mimeType = mimeTypes.lookup(fileExtension);
+    }
+    var blob = new Blob([uint8Array], { type: mimeType });
+    const parts = path.split("/");
+    const filename = parts[parts.length - 1];
+    var file = new window.File([blob], filename, {
+      type: mimeType,
     });
+
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    el.files = dataTransfer.files;
+    el.dispatchEvent(new Event("change"));
+    main.remove();
   };
   inner.appendChild(submit);
   main.appendChild(inner);

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, ipcMain } = require("electron");
+const { app, BrowserWindow, globalShortcut } = require("electron");
 const path = require("path");
 const handleDownloadFromInternet = require("./filemanagement/downloadFromInternet");
 var setupDisks = require("./modules/disks");
@@ -16,6 +16,7 @@ function createWindow() {
       icon: path.join(__dirname, "logo.png"),
       contextIsolation: false,
       sandbox: false,
+      webSecurity: false,
     },
   });
   globalShortcut.register("F12", () => {
@@ -23,18 +24,6 @@ function createWindow() {
   });
   win.loadURL("http://localhost:10000");
   win.setMenu(null);
-  ipcMain.on("getLocalStorage", (event, data) => {
-    win.webContents.executeJavaScript(
-      "storage.getAll((x, e) => {window.tempDataInfo = e})",
-    );
-    setTimeout(() => {
-      win.webContents
-        .executeJavaScript("window.tempDataInfo")
-        .then((result) => {
-          event.reply(data, result);
-        });
-    }, 2000);
-  });
   // Set custom download dialog
   win.webContents.session.on("will-download", async (event, item) => {
     await handleDownloadFromInternet(win, event, item);

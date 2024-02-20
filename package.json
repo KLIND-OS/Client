@@ -1,7 +1,7 @@
 {
   "name": "klindosclient",
   "version": "1.0.0",
-  "description": "KLIND OS Client je proram pro spuštění KLIND OS jako program",
+  "description": "KLIND OS Client je program pro spuštění KLIND OS.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -43,7 +43,9 @@
     "child_process": "^1.0.2",
     "electron-json-storage": "^4.6.0",
     "fs": "^0.0.1-security",
+    "fs-extra": "^11.2.0",
     "mime": "^3.0.0",
+    "mime-types": "^2.1.35",
     "os": "^0.1.2",
     "path": "^0.12.7",
     "sudo-prompt": "^9.2.1",

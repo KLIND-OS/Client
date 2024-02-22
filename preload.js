@@ -186,9 +186,10 @@ class LowLevelApi {
     open: promisify(fs.open),
     mimeTypes: mimeTypes,
     migrations: {
-      migrateToBinary: require("./filemanagement/migrations/migrateToBinary")
-    }
+      migrateToBinary: require("./filemanagement/migrations/migrateToBinary"),
+    },
   };
   static DiskManagement = require("./filemanagement/diskmanagement");
+  static Battery = require("./modules/battery");
 }
 window.LowLevelApi = LowLevelApi;

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut } = require("electron");
+const { app, BrowserWindow, globalShortcut, ipcMain } = require("electron");
 const path = require("path");
 const handleDownloadFromInternet = require("./filemanagement/downloadFromInternet");
 var setupDisks = require("./modules/disks");
@@ -19,6 +19,9 @@ function createWindow() {
       webSecurity: false,
     },
   });
+  ipcMain.on('set-zoom', (_, content) => {
+    win.webContents.setZoomFactor(content);
+  })
   globalShortcut.register("F12", () => {
     win.webContents.toggleDevTools();
   });

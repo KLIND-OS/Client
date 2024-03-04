@@ -26,7 +26,7 @@ class Printers {
     /* static printFile(printer, file, callback) {
     } */
 
-    static printPlainText(printer, text, callback) {
+    static printPlainText(printer, text) {
         exec(`echo "${text}" | lpr -P ${printer}`)
     }
 }

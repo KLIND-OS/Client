@@ -1,12 +1,12 @@
-const { exec } = require('child_process');
+const { exec } = require("child_process");
 class Apps {
   static openBluetooth() {
-    exec('notify-send "Pro zavření okna stiskněte Win + Shift + C"')
-    exec("blueman-manager")
+    exec("blueman-manager");
+    exec("python ~/scripts/closebtn.py blueman-manager");
   }
   static openNetwork() {
-    exec('notify-send "Pro zavření okna stiskněte Win + Shift + C"')
-    exec("nm-connection-editor")
+    exec("nm-connection-editor");
+    exec("python ~/scripts/closebtn.py nm-connection-editor");
   }
 }
-module.exports = Apps
+module.exports = Apps;

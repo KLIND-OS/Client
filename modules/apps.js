@@ -8,7 +8,7 @@ class Apps {
   }
   static openNetwork() {
     setTimeout(() => {
-      exec("python ~/scripts/closebtn.py nm-connection-editor");
+      exec("python ~/scripts/closebtn.py nm-conn");
     }, 5000);
     exec("nm-connection-editor");
   }

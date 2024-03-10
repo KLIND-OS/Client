@@ -139,6 +139,7 @@ class LowLevelApi {
   };
   static DiskManagement = require("./filemanagement/diskmanagement");
   static Battery = require("./modules/battery");
-  static setZoom = require("./modules/zoom")
+  static setZoom = require("./modules/zoom");
+  static Debugging = require("./modules/debugging");
 }
 window.LowLevelApi = LowLevelApi;

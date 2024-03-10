@@ -13,7 +13,7 @@ class Battery {
 
 
     const lines = stdout.split("\n");
-    const parts = lines.split(", ");
+    const parts = lines[0].split(", ");
     const batteryNumber = parts[0].split(":")[0].split(" ")[1];
     const batteryStatus = parts[0].split(": ")[1];
     const batteryPercentage = parts[1];

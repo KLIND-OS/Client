@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JZITNIK-github/KLIND-OS-Client.git"
+    "url": "git+https://github.com/KLIND-OS/Client.git"
   },
   "author": "Jakub Žitník",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/JZITNIK-github/KLIND-OS-Client/issues"
+    "url": "https://github.com/KLIND-OS/Client/issues"
   },
-  "homepage": "https://github.com/JZITNIK-github/KLIND-OS-Client#readme",
+  "homepage": "https://github.com/KLIND-OS/Client#readme",
   "build": {
     "appId": "com.jztnik.klindosclient",
     "productName": "KLIND OS Client Arch",

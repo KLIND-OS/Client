@@ -16,7 +16,7 @@ class Updates {
           }
           callback("30%", "Aktualizace grafického rozhraní");
           exec(
-            `git clone --branch ${branch} --depth 1 https://github.com/JZITNIK-github/KLIND-OS-Server /root/klindos-server/data`,
+            `git clone --branch ${branch} --depth 1 https://github.com/KLIND-OS/Server /root/klindos-server/data`,
             (error) => {
               if (error) {
                 callback("0%", "Error!");
@@ -24,7 +24,7 @@ class Updates {
               }
               callback("50%", "Aktualizace klienta");
               exec(
-                `git clone --branch ${branch} --depth 1 https://github.com/JZITNIK-github/KLIND-OS-Client /root/KLIND-OS-Client`,
+                `git clone --branch ${branch} --depth 1 https://github.com/KLIND-OS/Client /root/KLIND-OS-Client`,
                 (error) => {
                   if (error) {
                     callback("0%", "Error!");

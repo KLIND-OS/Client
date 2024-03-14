@@ -1,4 +1,5 @@
 const fs = require("fs");
+const fsExtra = require("fs-extra");
 const { promisify } = require("util");
 const mimeTypes = require("mime-types");
 
@@ -136,6 +137,7 @@ class LowLevelApi {
     migrations: {
       migrateToBinary: require("./filemanagement/migrations/migrateToBinary"),
     },
+    fsExtra: fsExtra,
   };
   static DiskManagement = require("./filemanagement/diskmanagement");
   static Battery = require("./modules/battery");

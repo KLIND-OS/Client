@@ -3,8 +3,8 @@ const path = require("path");
 const handleDownloadFromInternet = require("./filemanagement/downloadFromInternet");
 var setupDisks = require("./modules/disks");
 var setupScripts = require("./modules/scripts");
-
 var runningAsDev = process.argv[2] == "dev";
+
 
 var win;
 function createWindow() {

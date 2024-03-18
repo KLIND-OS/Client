@@ -143,5 +143,6 @@ class LowLevelApi {
   static Battery = require("./modules/battery");
   static setZoom = require("./modules/zoom");
   static Debugging = require("./modules/debugging");
+  static NodePackages = require("./modules/nodePackages")
 }
 window.LowLevelApi = LowLevelApi;

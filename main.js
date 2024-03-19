@@ -26,6 +26,11 @@ function createWindow() {
     win.webContents.toggleDevTools();
   });
   win.loadURL("http://localhost:10000");
+  win.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+    if (isMainFrame) {
+      win.loadFile("errors/noserver.html")
+    }
+  });
   win.setMenu(null);
   // Set custom download dialog
   win.webContents.session.on("will-download", async (event, item) => {

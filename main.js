@@ -19,13 +19,12 @@ function createWindow() {
       webSecurity: false,
     },
   });
-  ipcMain.on("set-zoom", (_, content) => {
-    win.webContents.setZoomFactor(content);
-  });
-  globalShortcut.register("F12", () => {
-    win.webContents.toggleDevTools();
-  });
+
+  // Load
   win.loadURL("http://localhost:10000");
+  win.setMenu(null);
+
+  // Error handling
   win.webContents.on(
     "did-fail-load",
     (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
@@ -34,10 +33,23 @@ function createWindow() {
       }
     },
   );
-  win.setMenu(null);
+
+  // Dev menu
+  globalShortcut.register("F12", () => {
+    win.webContents.toggleDevTools();
+  });
+
   // Set custom download dialog
   win.webContents.session.on("will-download", async (event, item) => {
     await handleDownloadFromInternet(win, event, item);
+  });
+
+  // API
+  ipcMain.on("set-zoom", (_, content) => {
+    win.webContents.setZoomFactor(content);
+  });
+  ipcMain.on("closeapp", () => {
+    app.quit();
   });
 
   // Set preload to all webviews
@@ -52,6 +64,8 @@ function createWindow() {
     `);
     } catch {}
   }, 1000);
+
+  // Disks
   if (!runningAsDev) {
     setupDisks(win.webContents);
     setupScripts(win.webContents);

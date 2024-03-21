@@ -152,5 +152,6 @@ class LowLevelApi {
   static setZoom = require("./modules/zoom");
   static Debugging = require("./modules/debugging");
   static NodePackages = require("./modules/nodePackages");
+  static Program = require("./modules/program");
 }
 window.LowLevelApi = LowLevelApi;

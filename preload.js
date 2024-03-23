@@ -3,7 +3,6 @@ const fsExtra = require("fs-extra");
 const { promisify } = require("util");
 const mimeTypes = require("mime-types");
 
-console.log(window.location);
 if (
   window.location.hostname !== "localhost" ||
   (window.location.port != 10000 &&

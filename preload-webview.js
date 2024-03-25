@@ -185,14 +185,20 @@ function showfilemanager(el) {
       alert("Soubor neexistuje!");
       return;
     }
-    var uint8Array = new Uint8Array(fls);
+    const binaryData = fls;
+    const buffer = new ArrayBuffer(binaryData.length);
+    const bufferView = new Uint8Array(buffer);
+    for (let i = 0; i < binaryData.length; i++) {
+      bufferView[i] = binaryData.charCodeAt(i);
+    }
+
     var mimeType = "application/octet-stream";
     if (path.includes(".")) {
       const parts = path.split(".");
       const fileExtension = parts[parts.length - 1];
       mimeType = mimeTypes.lookup(fileExtension);
     }
-    var blob = new Blob([uint8Array], { type: mimeType });
+    var blob = new Blob([buffer], { type: mimeType });
     const parts = path.split("/");
     const filename = parts[parts.length - 1];
     var file = new window.File([blob], filename, {

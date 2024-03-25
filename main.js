@@ -3,8 +3,8 @@ const path = require("path");
 const handleDownloadFromInternet = require("./filemanagement/downloadFromInternet");
 var setupDisks = require("./modules/disks");
 var setupScripts = require("./modules/scripts");
-
 var runningAsDev = process.argv[2] == "dev";
+app.commandLine.appendSwitch("disable-http-cache");
 
 var win;
 function createWindow() {
@@ -19,17 +19,37 @@ function createWindow() {
       webSecurity: false,
     },
   });
-  ipcMain.on('set-zoom', (_, content) => {
-    win.webContents.setZoomFactor(content);
-  })
+
+  // Load
+  win.loadURL("http://localhost:10000");
+  win.setMenu(null);
+
+  // Error handling
+  win.webContents.on(
+    "did-fail-load",
+    (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+      if (isMainFrame) {
+        win.loadFile("errors/noserver.html");
+      }
+    },
+  );
+
+  // Dev menu
   globalShortcut.register("F12", () => {
     win.webContents.toggleDevTools();
   });
-  win.loadURL("http://localhost:10000");
-  win.setMenu(null);
+
   // Set custom download dialog
   win.webContents.session.on("will-download", async (event, item) => {
     await handleDownloadFromInternet(win, event, item);
+  });
+
+  // API
+  ipcMain.on("set-zoom", (_, content) => {
+    win.webContents.setZoomFactor(content);
+  });
+  ipcMain.on("closeapp", () => {
+    app.quit();
   });
 
   // Set preload to all webviews
@@ -44,6 +64,8 @@ function createWindow() {
     `);
     } catch {}
   }, 1000);
+
+  // Disks
   if (!runningAsDev) {
     setupDisks(win.webContents);
     setupScripts(win.webContents);

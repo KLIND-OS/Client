@@ -8,13 +8,13 @@ class Updates {
           callback("0%", "Error!");
           return;
         }
-        callback("25%", "Aktualizace grafického rozhraní");
+        callback("20%", "Aktualizace grafického rozhraní");
         exec(`rm -rf /root/klindos-server/data`, (error) => {
           if (error) {
             callback("0%", "Error!");
             return;
           }
-          callback("30%", "Aktualizace grafického rozhraní");
+          callback("25%", "Aktualizace grafického rozhraní");
           exec(
             `git clone --branch ${branch} --depth 1 https://github.com/KLIND-OS/Server /root/klindos-server/data`,
             (error) => {
@@ -22,7 +22,7 @@ class Updates {
                 callback("0%", "Error!");
                 return;
               }
-              callback("50%", "Aktualizace klienta");
+              callback("45%", "Aktualizace klienta");
               exec(
                 `git clone --branch ${branch} --depth 1 https://github.com/KLIND-OS/Client /root/KLIND-OS-Client`,
                 (error) => {
@@ -30,13 +30,13 @@ class Updates {
                     callback("0%", "Error!");
                     return;
                   }
-                  callback("55%", "Aktualizace klienta");
+                  callback("50%", "Aktualizace klienta");
                   exec(`(cd /root/KLIND-OS-Client && npm install)`, (error) => {
                     if (error) {
                       callback("0%", "Error!");
                       return;
                     }
-                    callback("65%", "Aktualizace klienta");
+                    callback("60%", "Aktualizace klienta");
                     exec(
                       `(cd /root/KLIND-OS-Client && npm run build)`,
                       (error) => {
@@ -44,13 +44,13 @@ class Updates {
                           callback("0%", "Error!");
                           return;
                         }
-                        callback("85%", "Aktualizace klienta");
+                        callback("80%", "Aktualizace klienta");
                         exec(`rm -rf /root/client.AppImage`, (error) => {
                           if (error) {
                             callback("0%", "Error!");
                             return;
                           }
-                          callback("88%", "Aktualizace klienta");
+                          callback("83%", "Aktualizace klienta");
                           exec(
                             `cp /root/KLIND-OS-Client/dist/*.AppImage /root/client.AppImage`,
                             (error) => {
@@ -58,19 +58,32 @@ class Updates {
                                 callback("0%", "Error!");
                                 return;
                               }
-                              callback("91%", "Aktualizace klienta");
+                              callback("86%", "Aktualizace klienta");
                               exec(`rm -rf /root/KLIND-OS-Client`, (error) => {
                                 if (error) {
                                   callback("0%", "Error!");
                                   return;
                                 }
-                                callback("98%", "Aktualizace window manager");
+                                callback("90%", "Aktualizace window manager");
                                 exec(`xmonad --recompile`, (error) => {
                                   if (error) {
                                     callback("0%", "Error!");
                                     return;
                                   }
-                                  callback(true);
+                                  callback(
+                                    "93%",
+                                    "Aktualizace NodeJS knihoven",
+                                  );
+                                  exec(
+                                    `(cd ~/packages && npm update)`,
+                                    (error) => {
+                                      if (error) {
+                                        callback("0%", "Error!");
+                                        return;
+                                      }
+                                      callback(true);
+                                    },
+                                  );
                                 });
                               });
                             },

@@ -1,4 +1,5 @@
 const fs = require("fs");
+const fsExtra = require("fs-extra");
 const { promisify } = require("util");
 const mimeTypes = require("mime-types");
 
@@ -7,7 +8,14 @@ if (
   (window.location.port != 10000 &&
     window.location.pathname !== "/security.html")
 ) {
-  window.location.replace("http://localhost:10000/security.html");
+  if (
+    window.location.protocol === "file:" &&
+    !window.location.href.endsWith("/errors/noserver.html")
+  ) {
+    window.location.replace("http://localhost:10000/security.html");
+  } else if (window.location.protocol !== "file:") {
+    window.location.replace("http://localhost:10000/security.html");
+  }
 }
 
 var doneInputs = [];
@@ -136,10 +144,13 @@ class LowLevelApi {
     migrations: {
       migrateToBinary: require("./filemanagement/migrations/migrateToBinary"),
     },
+    fsExtra: fsExtra,
   };
   static DiskManagement = require("./filemanagement/diskmanagement");
   static Battery = require("./modules/battery");
   static setZoom = require("./modules/zoom");
   static Debugging = require("./modules/debugging");
+  static NodePackages = require("./modules/nodePackages");
+  static Program = require("./modules/program");
 }
 window.LowLevelApi = LowLevelApi;

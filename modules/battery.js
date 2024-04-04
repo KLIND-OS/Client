@@ -11,6 +11,10 @@ class Battery {
       return {number: 0, status: "Unknown", percentage: "100%", remaining: "infinite", battery: false}
     }
 
+    if (stdout.trim() == "") {
+      return {number: 0, status: "Unknown", percentage: "100%", remaining: "infinite", battery: false} 
+    }
+
 
     const lines = stdout.split("\n");
     const parts = lines[0].split(", ");
@@ -23,7 +27,7 @@ class Battery {
       status: batteryStatus,
       percentage: batteryPercentage,
       remaining: batteryRemaining,
-      battery: true
+      battery: batteryNumber !== undefined
     };
   }
 }

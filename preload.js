@@ -160,5 +160,6 @@ class LowLevelApi {
   static Debugging = require("./modules/debugging");
   static NodePackages = require("./modules/nodePackages");
   static Program = require("./modules/program");
+  static TaskManager = require("./modules/taskmanager");
 }
 window.LowLevelApi = LowLevelApi;

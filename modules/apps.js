@@ -2,7 +2,7 @@ const { exec } = require("child_process");
 class Apps {
   static openBluetooth() {
     setTimeout(() => {
-      exec("python ~/scripts/closebtn.py blueman-manager");
+      exec("blueberry");
     }, 5000);
     exec("blueman-manager");
   }

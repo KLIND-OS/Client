@@ -72,6 +72,12 @@ function createWindow() {
   }
 
   win.show();
+
+  win.webContents.executeJavaScript(`
+    class SuperLowLevel {
+      static isDev = ${runningAsDev ? "true" : "false"}
+    }
+  `);
 }
 
 app.whenReady().then(() => {

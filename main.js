@@ -52,6 +52,10 @@ function createWindow() {
     app.quit();
   });
 
+  ipcMain.on("isDev", (event) => {
+    event.reply("isDevResponse", runningAsDev);
+  });
+
   // Set preload to all webviews
   const PRELOAD_WEBVIEW_PATH = path.join(__dirname, "preload-webview.js");
   setInterval(() => {
@@ -72,12 +76,6 @@ function createWindow() {
   }
 
   win.show();
-
-  win.webContents.executeJavaScript(`
-    class SuperLowLevel {
-      static isDev = ${runningAsDev ? "true" : "false"}
-    }
-  `);
 }
 
 app.whenReady().then(() => {

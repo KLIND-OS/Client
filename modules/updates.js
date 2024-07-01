@@ -1,6 +1,13 @@
 const { exec } = require("child_process");
+
 class Updates {
-  static update(callback) {
+  static async update(callback) {
+    if (await LowLevelApi.SuperLowLevel.isDev()) {
+      return alert(
+        "Chceš se zabít!!? NIKDY NESPOUŠTĚJ AKTUALIZACI PŘI DEVELOPMENTU!!!",
+      );
+    }
+
     LowLevelApi.Branch.getSelected((branch) => {
       callback("0%", "Aktualizování systému");
       exec(`pacman -Suy --noconfirm`, (error) => {

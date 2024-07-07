@@ -1,10 +1,10 @@
-const { exec } = require('child_process');
+const { exec } = require("child_process");
 class Power {
-    static reboot() {
-        exec("reboot")
-    }
-    static poweroff() {
-        exec("poweroff")
-    }
+  static reboot() {
+    exec("reboot");
+  }
+  static poweroff() {
+    exec("poweroff");
+  }
 }
-module.exports = Power
+module.exports = Power;

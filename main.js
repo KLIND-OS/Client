@@ -1,6 +1,7 @@
 const { app, BrowserWindow, globalShortcut, ipcMain } = require("electron");
 const path = require("path");
 const handleDownloadFromInternet = require("./filemanagement/downloadFromInternet");
+const { remote } = require("electron");
 var setupDisks = require("./modules/disks");
 var setupScripts = require("./modules/scripts");
 var runningAsDev = process.argv[2] == "dev";
@@ -74,6 +75,8 @@ function createWindow() {
     setupDisks(win.webContents);
     setupScripts(win.webContents);
   }
+
+  win.webContents.toggleDevTools();
 
   win.show();
 }

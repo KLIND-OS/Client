@@ -3,6 +3,7 @@ const path = require("path");
 const os = require("os");
 
 module.exports = async (win, event, item) => {
+  console.log("hello")
   const filename = item.getFilename();
   const filepath = path.join(
     os.homedir() + "/usrfiles/Downloads/",
@@ -41,8 +42,6 @@ module.exports = async (win, event, item) => {
       await win.webContents.executeJavaScript(
         `downloadStatusStorage[${downloadStatusNumber}].finish()`,
       );
-    } else {
-      console.error("Pepa");
     }
   });
 };

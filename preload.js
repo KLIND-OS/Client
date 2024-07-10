@@ -3,10 +3,6 @@ const fsExtra = require("fs-extra");
 const { promisify } = require("util");
 const mimeTypes = require("mime-types");
 
-setTimeout(() => {
-  console.log(document.querySelector("webview").send)
-}, 5000)
-
 if (
   window.location.hostname !== "localhost" ||
   (window.location.port != 10000 &&

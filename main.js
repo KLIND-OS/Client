@@ -76,7 +76,9 @@ function createWindow() {
     setupScripts(win.webContents);
   }
 
-  win.webContents.toggleDevTools();
+  if (runningAsDev) {
+    win.webContents.toggleDevTools();
+  }
 
   win.show();
 }

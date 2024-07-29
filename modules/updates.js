@@ -48,9 +48,7 @@ class Updates {
         callback("90%");
 
         await execAsync(`xmonad --recompile`);
-        callback("93%");
 
-        await execAsync(`(cd ~/packages && npm update)`);
         callback(true);
       } catch (error) {
         console.log(error);

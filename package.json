@@ -7,6 +7,7 @@
     "start": "electron .",
     "dev": "electron . dev",
     "build": "electron-builder",
+    "githubbuild": "electron-builder --publish=never",
     "startNoSandbox": "electron . --no-sandbox"
   },
   "repository": {
